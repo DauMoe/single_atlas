@@ -144,16 +144,9 @@ class GenAtlas {
             pngPath = path.join(process.cwd(), `${texture.filename}.png`);
             cfgPath = path.join(process.cwd(), `${texture.filename}.cfg`);
 
-            if (index === fonts.length - 1) {
-              // Crop image if it's the last one
-              const img = await Jimp.read(texture.texture);
-              img
-                .autocrop(0.0002, false)
-                .write(pngPath);
-            } else {
-              fs.writeFileSync(pngPath, texture.texture);
-            }
+            fs.writeFileSync(pngPath, texture.texture);
             fs.writeFileSync(cfgPath, JSON.stringify(fontData.settings, null, '\t'));
+            
             this.#opt["reuse"] = cfgPath;
           });
           fontsData[`${fontName.toLowerCase()}_${fontWeight.toLocaleLowerCase()}`] = JSON.parse(fontData.data);

@@ -125,11 +125,13 @@ class GenAtlas {
       }
       const fonts = this.__fonts;
       let fontsData = {};
+      let cfgPath, pngPath;
+
       this.#checkFontExt(fonts);
       this.#checkFontWeight(fonts);
+
       for (const [index, font] of fonts.entries()) {
         try {
-          let cfgPath, pngPath;
           const { url, fontWeight, fontName } = font;
 
           // Get all available glyphs in font file
@@ -155,21 +157,27 @@ class GenAtlas {
             this.#opt["reuse"] = cfgPath;
           });
           fontsData[`${fontName.toLowerCase()}_${fontWeight.toLocaleLowerCase()}`] = JSON.parse(fontData.data);
-
-          if (index === fonts.length - 1) {
-            // Move atlas to dest dir
-            await Promise.all([
-              fs.rename(pngPath, this.#pngPath, _ => {}),
-              fs.writeFile(this.#jsonPath, JSON.stringify(fontsData, null, '\t'), _ => {}),
-              fs.unlink(cfgPath, _ => {})
-            ])
-          }
         } catch (e) {
           console.error(e);
         }
       }
-      this.#generated = true;
-      callback();
+
+      // not sure about the tick in nodejs but without settimeout, file is not removed?
+      setTimeout(async () => {
+        await Promise.all([
+          fs.rename(pngPath, this.#pngPath, (err) => {
+            if (err) console.error(err);
+          }),
+          fs.writeFile(this.#jsonPath, JSON.stringify(fontsData, null, '\t'), (err) => {
+            if (err) console.error(err);        
+          }),
+          fs.rm(cfgPath, (err) => {
+            if (err) console.error(err);
+          })
+        ]);
+        this.#generated = true;
+        callback();
+      }, 0);
     })
   }
 }

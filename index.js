@@ -164,12 +164,25 @@ class GenAtlas {
         }
       }
 
-      // (await Jimp.read(pngPath)).autocrop(0.002, false).write(this.#pngPath);
+      // Crop the final image (trim transparent background area)
+      const img = await Jimp.read(pngPath);
+      img.autocrop(0.0002, false).write(this.#pngPath);
+      const scaleW = img.bitmap.width;
+      const scaleH = img.bitmap.height;
+
+      for (const fontWeight in fontsData) {
+        const fontData = fontsData[fontWeight];
+        fontData["common"] = {
+          ...fontData["common"],
+          scaleW,
+          scaleH
+        }
+      }
 
       // not sure about the tick in nodejs but without settimeout, file is not removed?
       setTimeout(async () => {
         await Promise.all([
-          fs.rename(pngPath, this.#pngPath, (err) => {
+          fs.rm(pngPath, (err) => {
             if (err) console.error(err);
           }),
           fs.writeFile(this.#jsonPath, JSON.stringify(fontsData, null, '\t'), (err) => {

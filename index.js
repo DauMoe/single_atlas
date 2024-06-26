@@ -47,7 +47,7 @@ class GenAtlas {
       rtl: this.__rtl,
       fieldType: this.__fieldType,
       outputType: "json",
-      textureSize: [450 * this.__fonts.length, 450 * this.__fonts.length],
+      textureSize: [512 * this.__fonts.length, 512 * this.__fonts.length],
       smartSize: true,
       fontSize: this.__fontSize,
       border: this.__border,

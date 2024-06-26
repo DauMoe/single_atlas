@@ -25,9 +25,15 @@ class GenAtlas {
     this.__outputDir = this.#getOutputDir(opt.outputDir);
     this.__textureSize = opt.textureSize
     this.__fileName = opt.fileName ?? "atlas";
-    // this.__smartSize = opt.smartSize ?? true;
-    this.#generated = false;
+    this.__charset = opt.charset;
+    this.__fontSize = opt.fontSize ?? 42;
+    this.__border = opt.border ?? 0;
+    this.__distanceRange = opt.distanceRange ?? 3;
+    this.__texturePadding = opt.texturePadding ?? 2;
+    this.__roundDecimal = opt.roundDecimal ?? 0;
+    this.__rtl = opt.rtl ?? false;
 
+    this.#generated = false;
     this.#pngPath = path.join(this.__outputDir, `${this.__fileName}.${this.__fieldType}.png`);
     this.#jsonPath = path.join(this.__outputDir, `${this.__fileName}.${this.__fieldType}.json`);
 
@@ -38,11 +44,16 @@ class GenAtlas {
       pot: false,
       square: false,
       rot: false,
-      rtl: true,
+      rtl: this.__rtl,
       fieldType: this.__fieldType,
       outputType: "json",
       textureSize: [450 * this.__fonts.length, 450 * this.__fonts.length],
       smartSize: false,
+      fontSize: this.__fontSize,
+      border: this.__border,
+      distanceRange: this.__distanceRange,
+      texturePadding: this.__texturePadding,
+      roundDecimal: this.__roundDecimal,
     };
   }
 
@@ -135,25 +146,25 @@ class GenAtlas {
           const { url, fontWeight, fontName } = font;
 
           // Get all available glyphs in font file
-          const charset = this.#getCharSet(url);
-          this.#opt["charset"] = charset;
+          this.#opt["charset"] = this.__charset ?? this.#getCharSet(url);
 
           const { textures, fontData } = await this.#genBMFont(url, this.#opt);
           if (textures.length > 1) throw Error('"textSize" is not enough for single atlas. Increase it');
-          textures.forEach(async (texture) => {
-            pngPath = path.join(process.cwd(), `${texture.filename}.png`);
-            cfgPath = path.join(process.cwd(), `${texture.filename}.cfg`);
+          const texture = textures[0];
+          pngPath = path.join(process.cwd(), `${texture.filename}.png`);
+          cfgPath = path.join(process.cwd(), `${texture.filename}.cfg`);
 
-            fs.writeFileSync(pngPath, texture.texture);
-            fs.writeFileSync(cfgPath, JSON.stringify(fontData.settings, null, '\t'));
-            
-            this.#opt["reuse"] = cfgPath;
-          });
+          fs.writeFileSync(pngPath, texture.texture);
+          fs.writeFileSync(cfgPath, JSON.stringify(fontData.settings, null, '\t'));
+          
+          this.#opt["reuse"] = cfgPath;
           fontsData[`${fontName.toLowerCase()}_${fontWeight.toLocaleLowerCase()}`] = JSON.parse(fontData.data);
         } catch (e) {
           console.error(e);
         }
       }
+
+      // (await Jimp.read(pngPath)).autocrop(0.002, false).write(this.#pngPath);
 
       // not sure about the tick in nodejs but without settimeout, file is not removed?
       setTimeout(async () => {

@@ -48,7 +48,7 @@ class GenAtlas {
       fieldType: this.__fieldType,
       outputType: "json",
       textureSize: [450 * this.__fonts.length, 450 * this.__fonts.length],
-      smartSize: false,
+      smartSize: true,
       fontSize: this.__fontSize,
       border: this.__border,
       distanceRange: this.__distanceRange,
@@ -164,9 +164,8 @@ class GenAtlas {
         }
       }
 
-      // Crop the final image (trim transparent background area)
-      const img = await Jimp.read(pngPath);
-      img.autocrop(0.0002, false).write(this.#pngPath);
+      // Update atlas width and height after crop 
+      const img = (await Jimp.read(pngPath)).write(this.#pngPath);
       const scaleW = img.bitmap.width;
       const scaleH = img.bitmap.height;
 
